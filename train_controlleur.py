@@ -15,10 +15,10 @@ import random
 import pygame
 import torch
 import sys
-sys.path.insert(1,"/home/louis/projU2IS/controller/brain_controller.py")
-sys.path.insert(1,"/home/louis/projU2IS/controller/individual.py")
-sys.path.insert(1,"/home/louis/projU2IS/controller/population.py")
-sys.path.insert(1,"/home/louis/projU2IS/controller/vae")
+sys.path.insert(1,"brain_controller.py")
+sys.path.insert(1,"individual.py")
+sys.path.insert(1,"population.py")
+sys.path.insert(1,"vae")
 
 from population import Population, createPopulation
 from individual import Individual, ParamIndividual

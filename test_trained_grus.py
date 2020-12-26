@@ -67,6 +67,11 @@ with torch.no_grad():
 
             actions_in = data['seq_in']['actions']
             actions_out = data['seq_out']['actions']
+            print("state vae :",states_VAE.shape)
+            print("action in:",actions_in.shape)
+            print("action out:", actions_out.shape)
+            print("hidden state:", hidden_state.shape)
+
             output, hidden_state = rnn(hidden_state, states_VAE, actions_in, actions_out)
 
             loss = F.mse_loss(output, target.float(), reduction='sum').item()

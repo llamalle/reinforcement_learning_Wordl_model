@@ -15,11 +15,11 @@ import random
 import pygame
 import torch
 import sys
-sys.path.insert(1,"/home/louis/projU2IS/controller/brain_controller.py")
-sys.path.insert(1,"/home/louis/projU2IS/controller/individual.py")
-sys.path.insert(1,"/home/louis/projU2IS/controller/population.py")
-sys.path.insert(1,"/home/louis/projU2IS/controller/vae")
-sys.path.insert(1,"/home/louis/projU2IS/controller/rnn")
+sys.path.insert(1,"brain_controller.py")
+sys.path.insert(1,"individual.py")
+sys.path.insert(1,"population.py")
+sys.path.insert(1,"vae")
+sys.path.insert(1,"rnn")
 
 from population import Population, createPopulation
 from individual import Individual, ParamIndividual
@@ -35,7 +35,7 @@ SCALE = 1.25
 R=0.5
 RT=0.5
 NUMBER_GEN = 25
-SIZE = 20
+SIZE = 60
 MIN = 9.908510221828081
 MAX = 270
 
@@ -56,7 +56,7 @@ name_vae = "trained_vaes/VAELow_new.pt"
 state_dict_VAE = torch.load(name_vae)['state_dict']
 encoder.load_state_dict(state_dict_VAE)
 
-gru = GRUNet(seq_in=16, seq_out=3,  n_layers=1, drop_prob=0.0, input_action_dim=3,
+gru = GRUNet(seq_in=16, seq_out=1,  n_layers=1, drop_prob=0.0, input_action_dim=3,
                     input_states_dim=32, output_dim=32)
 name_gru = "trained_rnns/myGRU_new.pt"
 state_dict_GRU = torch.load(name_gru)['state_dict']
@@ -185,7 +185,6 @@ pop0 = Population(SIZE, 0)
 for i in range(SIZE):
     individual = ParamIndividual(torch.from_numpy(np.random.uniform(-1,1,[3,64])))
     pop0.addIndividual(individual)
-    print(individual.weight)
 
 
 pop = pop0
@@ -206,7 +205,10 @@ for i in range(NUMBER_GEN):
     IR_sensor = ProximitySensor(my_agent.base_platform, name='IR_1', normalize=False, range=270,fov=270, resolution=1080, point_angle=0.125)
     my_agent.add_sensor(IR_sensor)
     my_playground.add_agent(my_agent)
-    engine = Engine(time_limit=120000, playground=my_playground, screen=True)
+    engine = Engine(time_limit=120000, playground=my_playground, screen=False)
+
+    hidden_state = gru.init_hidden_state(1)
+
 
     ########SET VARIABLES###########################
     game_on = True
@@ -215,8 +217,8 @@ for i in range(NUMBER_GEN):
     totneg=0
     iteration=0
     time=0
-    previous_obs = np.zeros((16,32))
-    previous_act = np.zeros((16,3))
+    previous_obs = np.zeros((17,32))
+    previous_act = np.zeros((17,3))
 
     while (game_on):
         time+=1
@@ -233,23 +235,22 @@ for i in range(NUMBER_GEN):
         
         with torch.no_grad():
             previous_obs = np.append(previous_obs, encode_observation, axis=0)[1:]
-            print(previous_obs)
-        #######################################################
 
 
+        ####################GENERATE ACTION###################################
+        input, hidden_state = compute_input(encoder, gru, encode_observation, previous_obs, previous_act, hidden_state)
         actions = {}
-        actions[my_agent.name] = my_agent.controller.generate_actions(compute_input(encoder, gru, encode_observation, encode_observation, encode_observation))
+        actions[my_agent.name] = my_agent.controller.generate_actions(input)
         previous_act = np.append(previous_act, [np.array(list(actions[my_agent.name]["base"].values()))], axis=0)[1:]
+
 
         reset, terminate = engine.step(actions)
         engine.update_observations()
 
-        engine.display_full_scene()
+        #engine.display_full_scene()
         #pygame.time.wait(30)
 
 
-        if engine.elapsed_time%1000 == 1:
-            print("t")
 
         for agent in engine.agents:
             if agent.reward != 0:
@@ -262,7 +263,7 @@ for i in range(NUMBER_GEN):
                 if steps == 0:
                     continue_for_n_steps = False"""
 
-        if (time/25 > totpos-199) and not terminate:
+        if (time/35 > totpos-199) and not terminate:
             terminate = True
             totpos -= 200
 
@@ -275,6 +276,10 @@ for i in range(NUMBER_GEN):
             iteration += 1
             engine.reset()
             my_playground.remove_agent(my_agent)
+            hidden_state = gru.init_hidden_state(1)
+            previous_obs = np.zeros((17,32))
+            previous_act = np.zeros((17,3))
+
             
             if iteration < SIZE:
                 my_agent = BaseAgent(initial_position=[40,270,0], name='robot', controller=my_controller(pop.pop[iteration].weight.float(), 64))

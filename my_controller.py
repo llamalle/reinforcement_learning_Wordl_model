@@ -35,7 +35,7 @@ class my_controller(External):
             actions[action.body_part][action.action] = act_value"""
         i=0
         for action in self.available_actions:
-                actions[action.body_part][action.action] = A[0][i].data/8
+                actions[action.body_part][action.action] = A[0][i].data/16
                 i+=1
 
         return actions

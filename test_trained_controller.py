@@ -34,7 +34,7 @@ def plt_image(img):
     plt.imshow(img)
     plt.show()
 
-with open("means_trace", "rb") as f:
+with open("means_trace.npy", "rb") as f:
     trace = np.load(f)
 
 plt.plot(trace)
@@ -74,7 +74,7 @@ rectangular_object1 = Basic((int(220), int(180), 0), physical_shape='rectangle',
 my_playground.add_scene_element(rectangular_object1)
 ####################################################
 
-my_agent = BaseAgent(initial_position=[40,270,0], name='robot', controller=my_controller(best_agent.weight.float()))
+my_agent = BaseAgent(initial_position=[40,270,0], name='robot', controller=my_controller(best_agent.weight.float(), 64))
 IR_sensor = ProximitySensor(my_agent.base_platform, name='IR_1', normalize=False, range=270,fov=270, resolution=1080, point_angle=0.125)
 my_agent.add_sensor(IR_sensor)
 my_playground.add_agent(my_agent)

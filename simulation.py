@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, '/home/louis/projU2IS/controller/my_controller.py')
+sys.path.insert(1, 'my_controller.py')
 
 from my_controller import my_controller
 from simple_playgrounds import Engine

@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1,"/home/louis/projU2IS/controller/individual.py")
+sys.path.insert(1,"individual.py")
 from individual import RandomIndividual, ParamIndividual
 import random
 import torch
@@ -68,13 +68,15 @@ def createPopulation(size, generation_number, previous_generation, input_size):
 
     while(len(population.pop) < size):
         A,B = random.choices(previous_generation.pop, weights=probas, k=2)
-        
         if random.randint(0,100) > 30:
             A,B = cross([A,B], input_size)
-        if random.randint(0, 1000) > 950:
-            A = mutation(A, input_size)
-        if random.randint(0, 1000) > 950:
-            B = mutation(B, input_size)
+        
+        for i in range(2):
+            if random.randint(0, 1000) > 500:
+                B = mutation(B, input_size)
+            if random.randint(0, 1000) > 500:
+                A = mutation(A, input_size)
+        
 
         population.pop.append(deepcopy(A))
         population.pop.append(deepcopy(B))

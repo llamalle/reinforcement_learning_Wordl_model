@@ -28,6 +28,7 @@ class GRUNet(nn.Module):
     def forward(self, h, states_VAE, actions_in, actions_out):
         actions_in = actions_in.float()
         state_vae = states_VAE.float()
+
         # actions_in = self.fc_a(actions)
         # actions = F.relu(actions)
         x = torch.cat((state_vae, actions_in), 2)
@@ -60,6 +61,7 @@ def train_gru(GRU, encoder, optimizer, epoch, train_loaded):
     nb_sample = len(train_loaded.dataset)
 
     hidden_state = GRU.init_hidden_state(batch_size)
+    print(hidden_state.shape)
 
     for batch_index, data in enumerate(train_loaded):
 
@@ -79,6 +81,7 @@ def train_gru(GRU, encoder, optimizer, epoch, train_loaded):
         optimizer.zero_grad()
         actions_in = data['seq_in']['actions']
         actions_out = data['seq_out']['actions']
+
 
         output, hidden_state = GRU(hidden_state, states_vae, actions_in, actions_out)
 
